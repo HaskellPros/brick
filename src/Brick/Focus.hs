@@ -14,6 +14,7 @@ module Brick.Focus
   , focusGetCurrent
   , focusRingCursor
   , withFocusRing
+  , focusSetCurrent
   )
 where
 
@@ -22,6 +23,8 @@ import Data.Maybe (listToMaybe)
 
 import Brick.Types
 import Brick.Widgets.Core (Named(..))
+
+import qualified Data.List as List
 
 -- | A focus ring containing a sequence of resource names to focus and a
 -- currently-focused name.
@@ -95,3 +98,12 @@ focusRingCursor getRing st ls =
     where
         isCurrent cl = cl^.cursorLocationNameL ==
                        (focusGetCurrent $ getRing st)
+
+-- | Sets currently focused resource name to a given value. If there
+-- is no resource with a given name in a ring, returns ring unchanged.
+focusSetCurrent :: (Eq n) => FocusRing n -> n -> FocusRing n
+focusSetCurrent FocusRingEmpty _ = FocusRingEmpty
+focusSetCurrent ring@(FocusRingNonempty ns _) x =
+  case List.elemIndex x ns of
+    Just i' -> FocusRingNonempty ns i'
+    Nothing -> ring
